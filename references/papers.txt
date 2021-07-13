@@ -1,0 +1,4 @@
+Revealing the multidimensional mental representations of natural objects underlying human similarity judgments
+Function in the Human Connectome: Task-fMRI and Individual Differences in Behavior
+Permutation inference for the general linear model
+Combining fMRI during resting state and an attention bias task in children
