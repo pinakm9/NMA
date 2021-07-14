@@ -119,10 +119,11 @@ Find ROIs that are more likely to be in the signal curve (P<0.05)
                 of an ROI must lie in order to be selected 
         """
         a = -ss.norm.ppf(threshold/2.0)
-        for i, comp in enumerate(ica_comps):
+        n_comps, n_ROIs = ica_comps.shape 
+        for i in range(n_comps):
             loc = gmms[i].weights_[-1]
             scale = np.sqrt(gmms[i].covariances_[-1][0][0])
-            for roi, contrib in enumerate(comp):
-                z = (contrib - loc) / scale
+            for roi in range(n_ROIs):
+                z = (ica_comps[i][roi] - loc) / scale
                 if z > a or z < -a:
                     ica_comps[i][roi] = 0.0
