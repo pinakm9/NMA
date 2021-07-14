@@ -52,16 +52,12 @@ Find ROIs that are more likely to be in the signal curve (P<0.05)
         # PCA on the data
         sources = pca.fit_transform(self.data.T)
         variance_data = np.cumsum(pca.explained_variance_ratio_)
-        
-        # PCA threshold line
-        threshold_line =  np.full(200, threshold) # threshold line at 90% variance explained
-        
-        # scree plot
+
+        # scree plot 
         fig = plt.figure(figsize=(10, 10))
         ax = fig.add_subplot(111)
-        x=list(range(1, 201))
-        ax.scatter(x, variance_data)
-        ax.scatter(x, threshold_line)
+        ax.scatter(list(range(1, n_components+1)), variance_data)
+        ax.scatter(list(range(1, n_components+1)), np.full(200, threshold)) # threshold line at 90% variance explained
         ax.set_xlabel('principal components')
         ax.set_ylabel('cumulative variance explained')
         # plt.savefig('{}/scree_plot_ts_{}.png'.format(subject_folder, timeseries_index)) Where do we want to save the figure?
