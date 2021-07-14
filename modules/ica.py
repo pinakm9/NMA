@@ -46,11 +46,8 @@ Find ROIs that are more likely to be in the signal curve (P<0.05)
 
         """
         # PCA on the timeseries to estimate the number of components needed to explain 90% of variance
-
         pca = PCA(n_components=200)
-        
-        # PCA on the data
-        sources = pca.fit_transform(self.data.T)
+        pca.fit_transform(self.data.T)
         variance_data = np.cumsum(pca.explained_variance_ratio_)
 
         # scree plot 
