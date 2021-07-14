@@ -10,12 +10,13 @@ class ICA:
         data: space-time matrix
     
     Methods:
-        do_PCA: do PCA in space to explain variance with respect to eigenspectrum 
+        model_order_selection: do PCA in space to explain variance with respect to eigenspectrum
+        z_transform: Z-transforms ICA components
+        fit_GMM: fits a Gaussian mixture model to the z-transformed components
 
-Generate random (Gaussian) data of the same size and do PCA on it with explain variance with respect to eigenspectrum
-The number of components =  the point where the cumulative variance lines in 1 and 2 meet. Now we are done with model order selection!
-Z-transform
-(Plot the components as brain maps after doing z-transform ←-- easiest step???)
+
+
+        
 To do: determine if a component is biological or not 
 fit 2 gaussian GLM like model to find the fitting curves for noise and signal
 Find ROIs that are more likely to be in the signal curve (P<0.05)
@@ -27,17 +28,20 @@ Find ROIs that are more likely to be in the signal curve (P<0.05)
         self.data = data
 
 
-    def do_pca(self, n_components): 
+    def model_order_selection(self, n_components): 
         """
         Description:
-            do PCA in space to explain variance with respect to eigenspectrum 
+            Model order selection: estimation of how many components in the data are relevant
+            1. do PCA in space to explain variance with respect to eigenspectrum for the data
+            2. Generate random (Gaussian) data of the same size and do PCA on it as well
+            3. the number of components = the point where the explained variances meet.
 
         Arguments:
             n_components: number of components the PCA will keep.
-            two:
         
         Returns:
-            array of cummulative variances explained and plots it
+            arrays of explained variances in the data and the noise + a plot of them
+            estimated number of components that explain most of the variance in the data
 
         """
 
