@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.mixture import GMM
 
 class ICA:
     """
@@ -58,4 +59,24 @@ Find ROIs that are more likely to be in the signal curve (P<0.05)
         return np.load(file_path)
 
 
+    def fit_GMM(self, ica_comps, n_gmm_comps=2):
+        """
+        Description:
+            fits a Gaussian mixture model to the z-transformed components 
+        
+        Args:
+            ica_comps: the ICA components to fit your Gaussian mixture models to
+            n_gmm_comps: number of components in the mixture model
+        
+        Returns:
+            the computed mixture models
+        """
+        gmms = []
+        model = GMM(n_components=n_gmm_comps)
+        for comp in ica_comps:
+            gmms.append(model.fit(comp))
+        return gmms
+
+    def test_hyp(self, p_value):
+        pass
      
