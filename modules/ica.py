@@ -1,5 +1,6 @@
 import numpy as np
-from sklearn.mixture import GMM
+from sklearn.mixture import GaussianMixture
+import scipy.stats as ss
 
 class ICA:
     """
@@ -94,11 +95,34 @@ Find ROIs that are more likely to be in the signal curve (P<0.05)
             the computed mixture models
         """
         gmms = []
-        model = GMM(n_components=n_gmm_comps)
+        model = GaussianMixture(n_components=n_gmm_comps)
         for comp in ica_comps:
-            gmms.append(model.fit(comp))
+            gmm = model.fit(comp.reshape(-1, 1))
+            # order the gmm components according to ascending means
+            asc_order = np.argsort(gmm.weights_)
+            gmm.weights_ = gmm.weights_[asc_order]
+            gmm.means_ = gmm.means_[asc_order]
+            gmm.covariances_ = gmm.covariances_[asc_order]
+            gmms.append(gmm)
         return gmms
 
-    def test_hyp(self, p_value):
-        pass
-     
+    def select_ROIs(self, ica_comps, gmms, threshold):
+        """
+        Description:
+            Selects ROIs based on if it belongs to the signal or noise part of an independent component 
+            and keeps/removes them in/from the component accordingly
+
+        Args:
+            ica_comps: independent components
+            gmm: GaussianMixture objects in skleran fitted to the histograms of the independent components
+            threshold: p-value determing the range on standard Gaussian distribution in which the contribution
+                of an ROI must lie in order to be selected 
+        """
+        a = -ss.norm.ppf(threshold/2.0)
+        for i, comp in enumerate(ica_comps):
+            loc = gmms[i].weights_[-1]
+            scale = np.sqrt(gmms[i].covariances_[-1][0][0])
+            for roi, contrib in enumerate(comp):
+                z = (contrib - loc) / scale
+                if z > a or z < -a:
+                    ica_comps[i][roi] = 0.0
