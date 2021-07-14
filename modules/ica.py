@@ -12,16 +12,10 @@ class ICA:
     
     Methods:
         model_order_selection: do PCA in space to estimate necessary numbers of components
-        z_transform: Z-transforms ICA components
+        ICA_z_transform: Z-transforms ICA components
         fit_GMM: fits a Gaussian mixture model to the z-transformed components
-
-
-
-
-To do: determine if a component is biological or not 
-fit 2 gaussian GLM like model to find the fitting curves for noise and signal
-Find ROIs that are more likely to be in the signal curve (P<0.05)
-(Plotting it back on a brain?)
+        select_ROIs:  Selects ROIs based on if it belongs to the signal or noise part of an independent component 
+                and keeps/removes them in/from the component accordingly
 
     """
 
@@ -55,7 +49,7 @@ Find ROIs that are more likely to be in the signal curve (P<0.05)
         fig = plt.figure(figsize=(10, 10))
         ax = fig.add_subplot(111)
         ax.scatter(list(range(1, n_components+1)), variance_data)
-        ax.scatter(list(range(1, n_components+1)), np.full(200, threshold)) # threshold line at 90% variance explained
+        ax.scatter(list(range(1, n_components+1)), np.full(n_components, threshold)) # threshold line at 90% variance explained
         ax.set_xlabel('principal components')
         ax.set_ylabel('cumulative variance explained')
         # plt.savefig('{}/scree_plot_ts_{}.png'.format(subject_folder, timeseries_index)) Where do we want to save the figure?
@@ -67,21 +61,10 @@ Find ROIs that are more likely to be in the signal curve (P<0.05)
         
         return n_comp
         
-
+    def ICA_z_transform(self,):
+        """
+        """
        
-
-
-
-
-
-        file_path = self.db_path + '/subjects/{}/timeseries/bold{}_Atlas_MSMAll_Glasser360Cortical.npy'.format(self.subject_id, index)
-        return np.load(file_path)
-
-    def get_regions(self):
-        file_path = self.db_path + '/regions.npy'
-        return np.load(file_path)
-
-
     def fit_GMM(self, ica_comps, n_gmm_comps=2):
         """
         Description:
