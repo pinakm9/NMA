@@ -18,9 +18,9 @@ class Individual:
     def __init__(self, db_path, subject_id):
         self.db_path = db_path
         self.subject_id = subject_id
-        self.experiment = WM
+        self.experiment = 'WM'
 
-    def load_single_timeseries(self, run, remove_mean=True)):
+    def load_single_timeseries(self, run, remove_mean=True):
         """
         Description:
             load timeseries data for a single subject and single run
@@ -54,20 +54,25 @@ class Individual:
             evs (list of lists): A list of frames associated with each condition
 
         """
-    frames_list = []
-    task_key = 'tfMRI_'+self.experiment+['RL','LR'][run]
-    for cond in EXPERIMENTS[self.experiment]['cond']:    
-        file_path = self.db_path + '/subjects/{}/EVs/{}/{}.txt'.format(self.subject_id, task_key, cond)
-        ev_array = np.loadtxt(file_patch, ndmin=2, unpack=True)
-        ev       = dict(zip(["onset", "duration", "amplitude"], ev_array))
-        # Determine when trial starts, rounded down
-        start = np.floor(ev["onset"] / TR).astype(int)
-        # Use trial duration to determine how many frames to include for trial
-        duration = np.ceil(ev["duration"] / TR).astype(int)
-        # Take the range of frames that correspond to this specific trial
-        frames = [s + np.arange(0, d) for s, d in zip(start, duration)]
-        frames_list.append(frames)
-    return frames_list
+
+        EXPERIMENTS = {
+            'WM'         : {'runs': [7,8],   'cond':['0bk_body','0bk_faces','0bk_places','0bk_tools','2bk_body','2bk_faces','2bk_places','2bk_tools']},
+            }
+        TR = 0.72  # Time resolution, in seconds
+        frames_list = []
+        task_key = 'tfMRI_'+self.experiment+['RL','LR'][run]
+        for cond in EXPERIMENTS[self.experiment]['cond']:    
+            file_path = self.db_path + '/subjects/{}/EVs/{}/{}.txt'.format(self.subject_id, task_key, cond)
+            ev_array = np.loadtxt(file_path, ndmin=2, unpack=True)
+            ev       = dict(zip(["onset", "duration", "amplitude"], ev_array))
+            # Determine when trial starts, rounded down
+            start = np.floor(ev["onset"] / TR).astype(int)
+            # Use trial duration to determine how many frames to include for trial
+            duration = np.ceil(ev["duration"] / TR).astype(int)
+            # Take the range of frames that correspond to this specific trial
+            frames = [s + np.arange(0, d) for s, d in zip(start, duration)]
+            frames_list.append(frames)
+        return frames_list
 
     def get_regions(self):
         """
