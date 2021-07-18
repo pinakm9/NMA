@@ -168,7 +168,7 @@ class Group:
         return X
 
     @ut.timer
-    def extract_all_con(self, conditions):
+    def extract_cons(self, conditions):
         """
         Description:
             Extract all time series for all subjects for a list of conditions
