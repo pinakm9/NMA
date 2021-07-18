@@ -5,10 +5,10 @@ class Individual:
     """
     Description:
         Class for extracting data for an individual in the working memory task data
-    
+
     Attributes:
         db_path: path to HCP task data
-        subject_id: id of the subject 
+        subject_id: id of the subject
 
     Methods:
         load_single_timeseries: load timeseries data for a single subject and single run
@@ -21,7 +21,7 @@ class Individual:
         self.db_path = db_path
         self.subject_id = subject_id
         self.exp = 'WM'
-        self.experiments = { 
+        self.experiments = {
                 'MOTOR'      : {'runs': [5,6],   'cond':['lf','rf','lh','rh','t','cue']},
                 'WM'         : {'runs': [7,8],   'cond':['0bk_body','0bk_faces','0bk_places','0bk_tools','2bk_body','2bk_faces','2bk_places','2bk_tools']},
                 'EMOTION'    : {'runs': [9,10],  'cond':['fear','neut']},
@@ -30,17 +30,17 @@ class Individual:
                 'RELATIONAL' : {'runs': [15,16], 'cond':['match','relation']},
                 'SOCIAL'     : {'runs': [17,18], 'cond':['mental','rnd']}
             }
-            
+
     def load_single_timeseries(self, run, remove_mean=True):
         """
         Description:
             load timeseries data for a single subject and single run
-        
+
         Args:
             subject (int):      0-based subject ID to load
             run (int):          rund 7 or 8 for wm task
             remove_mean (bool): If True, subtract the parcel-wise mean (typically the mean BOLD signal is not of interest)
-        
+
         Returns:
             ts (n_parcel x n_timepoint array): Array of BOLD data values
         """
@@ -69,7 +69,7 @@ class Individual:
         frames_list = []
         for run in ['_RL','_LR']:
             task_key = 'tfMRI_'+self.exp+run
-            for cond in self.experiments[self.exp]['cond']:    
+            for cond in self.experiments[self.exp]['cond']:
                 file_path = self.db_path + '/subjects/{}/EVs/{}/{}.txt'.format(self.subject_id, task_key, cond)
                 ev_array = np.loadtxt(file_path, ndmin=2, unpack=True)
                 ev       = dict(zip(["onset", "duration", "amplitude"], ev_array))
@@ -97,7 +97,7 @@ class Individual:
         Returns
             A timeseries for all ROIs (360,78)
 
-        """          
+        """
         TR = 0.72  # Time resolution, in seconds
         frames_list = []
         list_runs = [7,8]
@@ -136,32 +136,30 @@ class Group:
     """
     Description:
         Class for extracting data for a condition for all subjects
-    
+
     Attributes:
         db_path: path to HCP task data
 
     Methods:
         extractall:
-        
+
     """
     def __init__(self, db_path):
         self.db_path = db_path
         self.n_subjects = 339
 
-    def extract_group_con(self, condition):
-       """
-        Description:
-            Extract all time series for all subjects for a specific condition
+    #def extract_group_con(self, condition):
+    #   """
+    #    Description:
+    #        Extract all time series for all subjects for a specific condition
 
-        Args:
-            condition: '0bk_body','0bk_faces','0bk_places','0bk_tools','2bk_body','2bk_faces','2bk_places','2bk_tools'
+    #    Args:
+    #        condition: '0bk_body','0bk_faces','0bk_places','0bk_tools','2bk_body','2bk_faces','2bk_places','2bk_tools'
 
-        Returns
-            A timeseries for all ROIs (360,78)
+    #    Returns
+    #        A timeseries for all ROIs (360,78)
 
-        """ 
-        ts=[]
-        for n in range(339):
-            load_evs_con(condition)
-
-
+    #    """
+    #    ts=[]
+    #    for n in range(339):
+    #        load_evs_con(condition)
