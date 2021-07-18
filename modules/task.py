@@ -2,6 +2,7 @@ import numpy as np
 from numpy.core import einsumfunc
 import utility as ut
 
+
 class Individual:
     """
     Description:
@@ -186,4 +187,5 @@ class Group:
             labels += [label] * self.n_subjects
         return np.array(data), np.array(labels) 
 
+   
      

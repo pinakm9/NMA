@@ -10,10 +10,9 @@ sys.path.insert(0, module_dir + '/modules')
 #print(script_dir) 
 
 # import remaining modules
-import task 
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.svm import SVC
+import task
+import methods 
+
 
 # collect data
 db_path = '../../data/hcp_task'
@@ -22,5 +21,6 @@ conditions = ['0bk_body', '0bk_faces', '0bk_places', '0bk_tools']
 X, y = group.extract_cons(conditions)
 
 # fit SVM
-clf = make_pipeline(StandardScaler(), SVC(kernel='rbf'))
-clf.fit(X, y)
+svm = methods.SVM(kernel='rbf')
+svm.fit(X, y)
+print("Accuracy of SVM: {}".format(svm.acc))
