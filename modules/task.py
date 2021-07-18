@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.core import einsumfunc
+import utility as ut
 
 class Individual:
     """
@@ -99,9 +100,8 @@ class Individual:
 
         """
         TR = 0.72  # Time resolution, in seconds
-        frames_list = []
         list_runs = [7,8]
-        ts=[]
+        ts = []
         for i, run in enumerate(['_RL','_LR']):
             task_key = 'tfMRI_'+self.exp+run
             file_path = self.db_path + '/subjects/{}/EVs/{}/{}.txt'.format(self.subject_id, task_key, condition)
@@ -148,18 +148,42 @@ class Group:
         self.db_path = db_path
         self.n_subjects = 339
 
-    #def extract_group_con(self, condition):
-    #   """
-    #    Description:
-    #        Extract all time series for all subjects for a specific condition
+    @ut.timer
+    def extract_con(self, condition):
+        """
+        Description:
+            Extract all time series for all subjects for a specific condition
 
-    #    Args:
-    #        condition: '0bk_body','0bk_faces','0bk_places','0bk_tools','2bk_body','2bk_faces','2bk_places','2bk_tools'
+        Args:
+            condition: '0bk_body','0bk_faces','0bk_places','0bk_tools','2bk_body','2bk_faces','2bk_places','2bk_tools'
 
-    #    Returns
-    #        A timeseries for all ROIs (360,78)
+        Returns:
+            A list all timeseries for all ROIs (360,78) and all subjects
 
-    #    """
-    #    ts=[]
-    #    for n in range(339):
-    #        load_evs_con(condition)
+        """
+        X = []
+        for subject_id in range(self.n_subjects):
+            subject = Individual(self.db_path, subject_id)
+            X.append(subject.load_evs_con(condition).flatten())
+        return X
+
+    @ut.timer
+    def extract_all_con(self, conditions):
+        """
+        Description:
+            Extract all time series for all subjects for a list of conditions
+
+        Args:
+            conditions: subset of {'0bk_body','0bk_faces','0bk_places','0bk_tools','2bk_body','2bk_faces','2bk_places','2bk_tools'}
+
+        Returns:
+            features (flattened) and labels for all subjects
+
+        """
+        data, labels = [], [] 
+        for label, condition in enumerate(conditions):
+            data += self.extract_con(condition)
+            labels += [label] * self.n_subjects
+        return np.array(data), np.array(labels) 
+
+     
