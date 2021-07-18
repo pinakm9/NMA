@@ -1,3 +1,4 @@
 data/hcp_task/
 data/hcp_rest/
-experiments/task/csv_files/.gitkeep
+experiments/task/csv_files/*
+!experiments/task/csv_files/.gitkeep
