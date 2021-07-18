@@ -10,14 +10,16 @@ class SVM:
 
     Attributes:
         kernel: SVM kernel to be used
+        params: extra parameters of sklearn SVC class
         acc: accuracy score, available after fitting
 
     Methods:
         fit: fits SVM to labelled date
     """
 
-    def __init__(self, kernel='rbf'):
+    def __init__(self, kernel='rbf', **params):
         self.kernel = kernel
+        self.params = params
 
     @ut.timer
     def fit(self, data, labels):
@@ -32,7 +34,7 @@ class SVM:
         Returns:
             Pipeline object from sklearn containg SVM-fitting data
         """
-        clf = make_pipeline(StandardScaler(), SVC(kernel=self.kernel))
+        clf = make_pipeline(StandardScaler(), SVC(kernel=self.kernel, **self.params))
         clf.fit(data, labels)
         self.acc = clf.score(data, labels)
         return clf

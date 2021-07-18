@@ -19,8 +19,8 @@ db_path = '../../data/hcp_task'
 group = task.Group(db_path)
 conditions = ['0bk_body', '0bk_faces', '0bk_places', '0bk_tools']
 X, y = group.extract_cons(conditions)
-
+print(y, X.shape)
 # fit SVM
-svm = methods.SVM(kernel='rbf')
+svm = methods.SVM(kernel='rbf', gamma=0.7, C=1.0)
 svm.fit(X, y)
 print("Accuracy of SVM: {}".format(svm.acc))
