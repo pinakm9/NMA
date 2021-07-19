@@ -165,7 +165,7 @@ class Group:
         X = []
         for subject_id in range(self.n_subjects):
             subject = Individual(self.db_path, subject_id)
-            X.append(subject.load_evs_con(condition).flatten())
+            X.append(subject.load_evs_con(condition))
         return X
 
     @ut.timer
