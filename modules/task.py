@@ -87,7 +87,7 @@ class Individual:
 
 
 
-    def load_evs_con(self, condition):
+    def load_evs_con(self, condition, remove_mean=False):
         """
         Description:
             load EVs (explanatory variables) data for one condition of task experiment and creates timeseries
@@ -95,6 +95,7 @@ class Individual:
         Args:
             subject (int): 0-based subject ID to load
             condition: '0bk_body','0bk_faces','0bk_places','0bk_tools','2bk_body','2bk_faces','2bk_places','2bk_tools'
+            remove_mean: indicator for removing mean
 
         Returns
             A timeseries for all ROIs (360,78)
@@ -117,8 +118,10 @@ class Individual:
             #frames_list.append(frames)
             self.experiments[self.exp]['runs']
             file_path = self.db_path + '/subjects/{}/timeseries/bold{}_Atlas_MSMAll_Glasser360Cortical.npy'.format(self.subject_id, list_runs[i])
-            newts= np.load(file_path)
-            ts.append(newts[:, frames[0]])
+            newts= np.load(file_path)[:, frames[0]]
+            if remove_mean:
+                newts -= newts.mean(axis=1, keepdims=True)
+            ts.append(newts)
         return np.hstack(ts)
 
 
