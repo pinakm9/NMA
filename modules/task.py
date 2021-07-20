@@ -190,5 +190,6 @@ class Group:
             labels += [label] * self.n_subjects
         return np.array(data), np.array(labels) 
 
+    
    
      
