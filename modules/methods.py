@@ -55,6 +55,24 @@ class PCA:
             new_data[i] = pca.fit_transform(subject.T)
         return new_data
 
+
+    @ut.timer
+    def lenca(self, data, n_components):
+        """
+        Description:
+            performs PCA after epiphany
+        """
+        n_subjects, roi_dim, time_dim = data.shape
+        data = data.reshape(roi_dim * 4, -1)
+        #data = self.normalize(data)
+        pca = sklearn.decomposition.PCA(n_components=n_components)
+        new_labels = []
+        for i in range(4):
+            new_labels += [i] * roi_dim
+        return pca.fit_transform(data), np.array(new_labels)
+
+
+
     @ut.timer
     def pca_roi(self, data, labels, n_components):
         """
