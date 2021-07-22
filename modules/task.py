@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.core import einsumfunc
 import utility as ut
-
+from sklearn import preprocessing
 
 class Individual:
     """
@@ -190,6 +190,27 @@ class Group:
             labels += [label] * self.n_subjects
         return np.array(data), np.array(labels) 
 
-    
+
+    @ut.timer
+    def normalize_individuals(self, data):
+        """
+        Description:
+            Normalizes data for a single individual
+        """
+        for i, subject in enumerate(data):
+            data[i, :, :] =  preprocessing.StandardScaler().fit_transform(subject)
+        return data
+
+
+    @ut.timer
+    def squash_frame(self, data):
+        """
+        Description:
+            squashs the frames into average
+        """
+        new_data = np.zeros((data.shape[0], data.shape[1]))
+        for i, subject in enumerate(data):
+            for j, roi in subject:
+                new_data[i, j] = np.mean(roi)
    
-     
+        return new_data

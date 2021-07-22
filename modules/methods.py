@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import cross_val_score
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import KFold
 
 
 class PCA:
@@ -64,12 +65,21 @@ class PCA:
         """
         n_subjects, roi_dim, time_dim = data.shape
         data = data.reshape(roi_dim * 4, -1)
+        
+        """
+        for i, row in enumerate(data):
+            std = np.std(row)
+            mean = np.mean(row)
+            data[i, :] = (row - mean) / std 
         #data = self.normalize(data)
+        """
+        
         pca = sklearn.decomposition.PCA(n_components=n_components)
         new_labels = []
         for i in range(4):
             new_labels += [i] * roi_dim
-        return pca.fit_transform(data), np.array(new_labels)
+        new_data = pca.fit_transform(data)
+        return new_data, np.array(new_labels), pca.explained_variance_ratio_#pca.fit_transform()
 
 
 
@@ -86,7 +96,11 @@ class PCA:
         new_labels = []
         for label in labels:
             new_labels += [label] * time_dim
-        return self.normalize(pca.fit_transform(data)), np.array(new_labels)
+        new_data = pca.fit_transform(data)
+        return new_data, np.array(new_labels),  pca.explained_variance_ratio_
+
+
+    
 
 
     @ut.timer
@@ -126,10 +140,28 @@ class SVM:
         self.scores = []
 
     @ut.timer
-    def fit(self, data, labels, k_folds=8):
+    def fit(self, data, labels):
         """
         Description: 
             fits SVM to labelled data
+
+        Args:
+            data: data to be classified
+            labels: corresponding labels
+
+        Returns:
+            Pipeline object from sklearn containg SVM-fitting data
+        """
+        clf = SVC(kernel=self.kernel, **self.params)
+        clf.fit(data, labels)
+        self.scores.append(clf.score(data, labels))#clf.score(data, labels))
+        return clf 
+
+    @ut.timer
+    def cross_val(self, data, labels, k_folds=8):
+        """
+        Description: 
+            fits and cross-validates SVM to labelled data
 
         Args:
             data: data to be classified
@@ -140,10 +172,22 @@ class SVM:
             Pipeline object from sklearn containg SVM-fitting data
         """
         clf = SVC(kernel=self.kernel, **self.params)
-        #clf.fit(data, labels)
         scores = cross_val_score(clf, data, labels, cv=k_folds)
         self.scores.append(scores)#clf.score(data, labels))
         return clf 
+
+    @ut.timer
+    def cross_val_diy(self, data, labels, k_folds=8):
+        """
+        """
+        kf = KFold(n_splits=k_folds, random_state=None, shuffle=True)
+        
+        for train_index, test_index in kf.split(data):
+            clf = SVC(kernel=self.kernel, **self.params)
+            clf.fit(data[train_index], labels[train_index])
+            self.scores.append(clf.score(data[test_index], labels[test_index]))
+        return clf
+
 
     def plot_acc(self, x_data, file_path):
         """
