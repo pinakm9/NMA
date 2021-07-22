@@ -153,7 +153,7 @@ class Group:
         self.n_subjects = 339
 
     @ut.timer
-    def extract_con(self, condition):
+    def extract_con(self, condition, remove_mean=False):
         """
         Description:
             Extract all time series for all subjects for a specific condition
@@ -168,11 +168,11 @@ class Group:
         X = []
         for subject_id in range(self.n_subjects):
             subject = Individual(self.db_path, subject_id)
-            X.append(subject.load_evs_con(condition))
+            X.append(subject.load_evs_con(condition, remove_mean))
         return X
 
     @ut.timer
-    def extract_cons(self, conditions):
+    def extract_cons(self, conditions, remove_mean=False):
         """
         Description:
             Extract all time series for all subjects for a list of conditions
@@ -184,11 +184,36 @@ class Group:
             features (flattened) and labels for all subjects
 
         """
-        data, labels = [], [] 
+        data, labels = [], []
         for label, condition in enumerate(conditions):
-            data += self.extract_con(condition)
+            data += self.extract_con(condition, remove_mean)
             labels += [label] * self.n_subjects
-        return np.array(data), np.array(labels) 
+        return np.array(data), np.array(labels)
+
+
+    @ut.timer
+    def transpose(self, data):
+        """
+        Description:
+            Transposes ROIs and People, expects unshuffled data
+        """
+        n_conditions = int(data.shape[0] / self.n_subjects)
+        n_rois = data.shape[1]
+        dim  = len(data.shape)
+        if dim < 3:
+            new_data = np.zeros((data.shape[1] * n_conditions, self.n_subjects ))
+        else:
+            new_data = np.zeros((data.shape[1] * n_conditions, self.n_subjects, data.shape[2]))
+        new_labels = []
+        for condition in range(n_conditions):
+            idx_1 = list(range(condition * n_rois, (condition + 1) * n_rois))
+            idx_2 = list(range(condition * self.n_subjects, (condition + 1) * self.n_subjects))
+            if dim < 3:
+                new_data[idx_1, :] = data[idx_2, :].T
+            else:
+                new_data[idx_1, :,  :] = np.transpose(data[idx_2, :, :], axes=(1, 0, 2))
+            new_labels += [condition] * data.shape[1]
+        return  new_data, np.array(new_labels)
 
 
     @ut.timer
@@ -223,5 +248,5 @@ class Group:
         for i, subject in enumerate(data):
             for j, roi in enumerate(subject):
                 new_data[i, j] = np.mean(roi)
-   
+
         return new_data

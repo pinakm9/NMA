@@ -2,8 +2,8 @@ from random import random
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
-import sklearn.decomposition 
-import utility as ut 
+import sklearn.decomposition
+import utility as ut
 import matplotlib.pyplot as plt
 from sklearn.model_selection import cross_val_score
 import numpy as np
@@ -11,8 +11,8 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import KFold
 from sklearn.metrics import accuracy_score
 from sklearn.utils import shuffle
-import optunity
-import optunity.metrics
+#import optunity
+#import optunity.metrics
 
 class PCA:
     """
@@ -52,7 +52,7 @@ class PCA:
     def per_individual(self, data, n_components):
         """
         Description:
-            performs PCA per individual 
+            performs PCA per individual
         """
         new_data = np.zeros((data.shape[0], data.shape[2], n_components))
         pca = sklearn.decomposition.PCA(n_components=n_components)
@@ -69,15 +69,15 @@ class PCA:
         """
         n_subjects, roi_dim, time_dim = data.shape
         data = data.reshape(roi_dim * 4, -1)
-        
+
         """
         for i, row in enumerate(data):
             std = np.std(row)
             mean = np.mean(row)
-            data[i, :] = (row - mean) / std 
+            data[i, :] = (row - mean) / std
         #data = self.normalize(data)
         """
-        
+
         pca = sklearn.decomposition.PCA(n_components=n_components)
         new_labels = []
         for i in range(4):
@@ -118,7 +118,7 @@ class PCA:
         """
         Description:
             normalizes data according to provided normalizer class
-        
+
         Args:
             data: data to be normalized
             norm_class: a Python class that normalizes data, default = MinMaxScaler
@@ -133,7 +133,7 @@ class PCA:
 class SVM:
     """
     Description:
-        Personalized class for support vector machines 
+        Personalized class for support vector machines
 
     Attributes:
         kernel: SVM kernel to be used
@@ -152,7 +152,7 @@ class SVM:
     @ut.timer
     def fit(self, data, labels):
         """
-        Description: 
+        Description:
             fits SVM to labelled data
 
         Args:
@@ -165,12 +165,12 @@ class SVM:
         clf = SVC(kernel=self.kernel, **self.params)
         clf.fit(data, labels)
         self.scores.append(clf.score(data, labels))#clf.score(data, labels))
-        return clf 
+        return clf
 
     @ut.timer
     def cross_val(self, data, labels, k_folds=8):
         """
-        Description: 
+        Description:
             fits and cross-validates SVM to labelled data
 
         Args:
@@ -184,7 +184,7 @@ class SVM:
         clf = SVC(kernel=self.kernel, **self.params)
         scores = cross_val_score(clf, data, labels, cv=k_folds)
         self.scores.append(scores)#clf.score(data, labels))
-        return clf 
+        return clf
 
 
     @ut.timer
@@ -195,7 +195,7 @@ class SVM:
         """
         for _ in range(n_shuffle):
             data, labels = shuffle(data, labels, random_state = np.random.randint(int(1e6), int(1e9)))
-        return data, labels 
+        return data, labels
 
 
     @ut.timer
@@ -204,12 +204,12 @@ class SVM:
         """
         data, labels = self.massive_shuffle(data, labels, n_shuffle)
         kf = KFold(n_splits=k_folds)
-        
+
         for train_index, test_index in kf.split(data):
             clf = SVC(kernel=self.kernel, **self.params)
             clf.fit(data[train_index], labels[train_index])
             score = clf.predict(data[test_index])
-            print(score) 
+            print(score)
             print("test", labels[test_index])
             print("train", labels[train_index][:100])
             self.scores.append(clf.score(data[test_index], labels[test_index]))
@@ -220,7 +220,7 @@ class SVM:
         """
         Description:
             plots accuracies
-        
+
         Args:
             x_data: x values corresponding to accuracies
             file_path: path for saving the plot
@@ -232,7 +232,7 @@ class SVM:
         ax.set_ylabel("accuracy")
         plt.savefig(file_path)
 
-
+"""
     def tune(self, data, labels):
         # score function: twice iterated 10-fold cross-validated accuracy
         @optunity.cross_validated(x=data, y=labels, num_folds=10, num_iter=2)
@@ -247,6 +247,4 @@ class SVM:
         # train model on the full training set with tuned hyperparameters
         optimal_model = sklearn.svm.SVC(C=10 ** hps['logC'], gamma=10 ** hps['logGamma']).fit(data, labels)
         return optimal_model
-
-
-
+"""
