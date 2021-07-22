@@ -100,7 +100,13 @@ class PCA:
         return new_data, np.array(new_labels),  pca.explained_variance_ratio_
 
 
-    
+    def regular(self, data, n_components):
+        """
+        Description:
+            Vanilla PCA without any mods
+        """
+        pca = sklearn.decomposition.PCA(n_components=n_components)
+        return pca.fit_transform(data),  pca.explained_variance_ratio_
 
 
     @ut.timer
