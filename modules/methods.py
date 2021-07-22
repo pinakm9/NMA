@@ -181,6 +181,7 @@ class SVM:
         Returns:
             Pipeline object from sklearn containg SVM-fitting data
         """
+        data, labels = self.massive_shuffle(data, labels)
         clf = SVC(kernel=self.kernel, **self.params)
         scores = cross_val_score(clf, data, labels, cv=k_folds)
         self.scores.append(scores)#clf.score(data, labels))
