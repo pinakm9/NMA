@@ -203,6 +203,17 @@ class Group:
 
 
     @ut.timer
+    def normalize_across_cons(self, data):
+        """
+        Description:
+            Normalizes data for a single individual
+        """
+        for i, subject in enumerate(data):
+            data[i, :, :] =  (preprocessing.StandardScaler().fit_transform(subject))
+        return data
+
+
+    @ut.timer
     def squash_frames(self, data):
         """
         Description:

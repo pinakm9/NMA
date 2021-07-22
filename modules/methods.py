@@ -1,3 +1,4 @@
+from random import random
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
@@ -8,7 +9,10 @@ from sklearn.model_selection import cross_val_score
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import KFold
-
+from sklearn.metrics import accuracy_score
+from sklearn.utils import shuffle
+import optunity
+import optunity.metrics
 
 class PCA:
     """
@@ -182,15 +186,32 @@ class SVM:
         self.scores.append(scores)#clf.score(data, labels))
         return clf 
 
+
     @ut.timer
-    def cross_val_diy(self, data, labels, k_folds=8):
+    def massive_shuffle(self, data, labels, n_shuffle=100):
+        """
+        Description:
+            Shuffle your data to death
+        """
+        for _ in range(n_shuffle):
+            data, labels = shuffle(data, labels, random_state = np.random.randint(int(1e6), int(1e9)))
+        return data, labels 
+
+
+    @ut.timer
+    def cross_val_diy(self, data, labels, k_folds=8, n_shuffle=100):
         """
         """
-        kf = KFold(n_splits=k_folds, random_state=None, shuffle=True)
+        data, labels = self.massive_shuffle(data, labels, n_shuffle)
+        kf = KFold(n_splits=k_folds)
         
         for train_index, test_index in kf.split(data):
             clf = SVC(kernel=self.kernel, **self.params)
             clf.fit(data[train_index], labels[train_index])
+            score = clf.predict(data[test_index])
+            print(score) 
+            print("test", labels[test_index])
+            print("train", labels[train_index][:100])
             self.scores.append(clf.score(data[test_index], labels[test_index]))
         return clf
 
@@ -210,3 +231,22 @@ class SVM:
         ax.scatter(x_data, self.acc)
         ax.set_ylabel("accuracy")
         plt.savefig(file_path)
+
+
+    def tune(self, data, labels):
+        # score function: twice iterated 10-fold cross-validated accuracy
+        @optunity.cross_validated(x=data, y=labels, num_folds=10, num_iter=2)
+        def svm_auc(x_train, y_train, x_test, y_test, logC, logGamma):
+            model = sklearn.svm.SVC(C=10 ** logC, gamma=10 ** logGamma).fit(x_train, y_train)
+            decision_values = model.decision_function(x_test)
+            return optunity.metrics.roc_auc(y_test, decision_values)
+
+        # perform tuning
+        hps, _, _ = optunity.maximize(svm_auc, num_evals=200, logC=[-5, 2], logGamma=[-5, 1])
+
+        # train model on the full training set with tuned hyperparameters
+        optimal_model = sklearn.svm.SVC(C=10 ** hps['logC'], gamma=10 ** hps['logGamma']).fit(data, labels)
+        return optimal_model
+
+
+
