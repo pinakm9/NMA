@@ -11,8 +11,6 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import KFold
 from sklearn.metrics import accuracy_score
 from sklearn.utils import shuffle
-#import optunity
-#import optunity.metrics
 
 class PCA:
     """
@@ -185,7 +183,7 @@ class SVM:
         clf = SVC(kernel=self.kernel, **self.params)
         scores = cross_val_score(clf, data, labels, cv=k_folds)
         self.scores.append(scores)#clf.score(data, labels))
-        return clf
+        return scores
 
 
     @ut.timer
@@ -232,20 +230,3 @@ class SVM:
         ax.scatter(x_data, self.acc)
         ax.set_ylabel("accuracy")
         plt.savefig(file_path)
-
-"""
-    def tune(self, data, labels):
-        # score function: twice iterated 10-fold cross-validated accuracy
-        @optunity.cross_validated(x=data, y=labels, num_folds=10, num_iter=2)
-        def svm_auc(x_train, y_train, x_test, y_test, logC, logGamma):
-            model = sklearn.svm.SVC(C=10 ** logC, gamma=10 ** logGamma).fit(x_train, y_train)
-            decision_values = model.decision_function(x_test)
-            return optunity.metrics.roc_auc(y_test, decision_values)
-
-        # perform tuning
-        hps, _, _ = optunity.maximize(svm_auc, num_evals=200, logC=[-5, 2], logGamma=[-5, 1])
-
-        # train model on the full training set with tuned hyperparameters
-        optimal_model = sklearn.svm.SVC(C=10 ** hps['logC'], gamma=10 ** hps['logGamma']).fit(data, labels)
-        return optimal_model
-"""
