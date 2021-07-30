@@ -365,7 +365,6 @@ write.csv(WM_0back_z_comb_dcast, 'WM_0back_z.csv')
 write.csv(WM_2back_z_comb_dcast, 'WM_2back_z.csv')
 ```
 
-
 Mina's data
 
 ```{r}
@@ -392,3 +391,191 @@ emmeans::emmip(models_FuncConn$Contrasts, ~ Contrast, cov.reduce = range)
 lsmeans(models_FuncConn$Contrasts, pairwise ~ Contrast, cov.reduce = range, adjust = 'bonferroni', lmerTest.limit = 4767)
 ```
 
+GLM accuracy - Visualization & comparison
+
+```{r}
+GLMAccuracy <- read.csv('Network_GLMAccuracy.csv')
+View(GLMAccuracy)
+
+GLMAccuracy_gather <- gather(GLMAccuracy, "Network", "Accuracy")
+View(GLMAccuracy_gather)
+
+GLMAccuracy_gather$Accuracy_perc <- GLMAccuracy_gather$Accuracy * 100
+
+GLMAccuracy_gather$NetworkPlot <- if_else(GLMAccuracy_gather$Network == 'Primary.visual.cortex', 'Primary visual cortex',
+                                  if_else(GLMAccuracy_gather$Network == 'Secondary.visual.cortex', 'Secondary visual cortex',
+                                  if_else(GLMAccuracy_gather$Network == 'Somatomotor.network', 'Somatomotor network',
+                                  if_else(GLMAccuracy_gather$Network == 'Cingulo.opercular.network', 'Cingulo-opercular network',
+                                  if_else(GLMAccuracy_gather$Network == 'Language.network', 'Language network',
+                                  if_else(GLMAccuracy_gather$Network == 'Default.network', 'Default network',
+                                  if_else(GLMAccuracy_gather$Network == 'Frontoparietal.network', 'Frontoparietal network',
+                                  if_else(GLMAccuracy_gather$Network == 'Auditory.network', 'Auditory network',
+                                  if_else(GLMAccuracy_gather$Network == 'Dorsal.attention.network', 'Dorsal attention network',
+                                  if_else(GLMAccuracy_gather$Network == 'Posterior.medial.network', 'Posterior medial network',
+                                  if_else(GLMAccuracy_gather$Network == 'Orbito.affective.network', 'Orbito-affective network',
+                                          "Ventral attention network")))))))))))
+
+GLMAccuracy_gather$NetworkPlot2 <- if_else(GLMAccuracy_gather$Network == 'Primary.visual.cortex', 'Primary visual',
+                                  if_else(GLMAccuracy_gather$Network == 'Secondary.visual.cortex', 'Secondary visual',
+                                  if_else(GLMAccuracy_gather$Network == 'Somatomotor.network', 'Somatomotor',
+                                  if_else(GLMAccuracy_gather$Network == 'Cingulo.opercular.network', 'Cingulo-opercular',
+                                  if_else(GLMAccuracy_gather$Network == 'Language.network', 'Language',
+                                  if_else(GLMAccuracy_gather$Network == 'Default.network', 'Default',
+                                  if_else(GLMAccuracy_gather$Network == 'Frontoparietal.network', 'Frontoparietal',
+                                  if_else(GLMAccuracy_gather$Network == 'Auditory.network', 'Auditory',
+                                  if_else(GLMAccuracy_gather$Network == 'Dorsal.attention.network', 'Dorsal attention',
+                                  if_else(GLMAccuracy_gather$Network == 'Posterior.medial.network', 'Posterior medial',
+                                  if_else(GLMAccuracy_gather$Network == 'Orbito.affective.network', 'Orbito-affective',
+                                          "Ventral attention")))))))))))
+
+GLM_Accuracy_Plot <- GLMAccuracy_gather %>%
+  ggplot(aes(y = Accuracy_perc, x = NetworkPlot2, fill = NetworkPlot2, colour = NetworkPlot2)) +
+  geom_flat_violin(position = position_nudge(x = .3, y = 0), alpha = .3) +
+  #geom_boxplot(width = .15, guides = FALSE, outlier.shape = NA, alpha = 0.5) +
+  geom_point(position = position_dodge2(width = 0.4), size = 3, alpha = 0.1) +
+  stat_summary(fun = mean, geom = 'pointrange', width = 0.3, size = 2.6, alpha = 1, position=position_dodge(width=0.4)) +
+  stat_summary(fun.data = mean_se, geom='errorbar', width = 0.35, size = 2.6, alpha = 1, linetype = "solid",
+               position=position_dodge(width=0.4)) +
+  #stat_summary(aes(y = meanAcc, group = as.numeric(Subject)), fun.y = mean, geom = "line", size = 2, alpha = 1.2, width = 0.25, colour = 
+  #               'gray48', mult = 1) +
+  guides(color = FALSE) +
+  #scale_color_brewer(palette = "Dark2") +
+  #scale_fill_brewer(palette = "Dark2") +
+  ylab('Classification accuracy (%)') +
+  geom_hline(yintercept = 25, colour = 'black', linetype = 'dashed') +
+  geom_hline(yintercept = 65.33200, colour = 'grey', linetype = 'dashed') +
+  ylim(0, 100) +
+  guides(colour = "legend", group = 'none', fill = 'none', shape = 'none', size = 'none') +
+  graph_theme_NMA +
+  theme(axis.text.x = element_text(angle = 90), legend.position = 'none')
+
+ggsave('GLM_Accuracy_Plot.png', GLM_Accuracy_Plot, device = 'png', dpi = 100, width = 25, height = 15)
+
+# Quick ANOVA comparison (Do not overinterpret & ids are probably not specified well)
+GLMAccuracy_gather$Index <- rep(1:360)
+GLMAccuracy_gather$Classifier <- 'GLM'
+
+Classification_Acc_GLM <- aov_ez(
+   id = 'Index',
+   dv = 'Accuracy_perc',
+   data = GLMAccuracy_gather,
+   between = 'Network',
+   factorize = TRUE)
+ 
+summary(Classification_Acc_GLM)
+
+emmeans::emmip(Classification_Acc_GLM, ~ Network, cov.reduce = range) 
+lsmeans(Classification_Acc_GLM, pairwise ~ Network, cov.reduce = range, adjust = 'bonferroni', lmerTest.limit = 4767) #V2 is superior than all others
+```
+
+SVM accuracy - Visualization & comparison
+
+```{r}
+SVMAccuracy <- read.csv('Network_SVM_Accuracy.csv')
+
+SVMAccuracy_gather <- gather(SVMAccuracy, "Network", "Accuracy")
+View(SVMAccuracy_gather)
+
+SVMAccuracy_gather$Accuracy_perc <- SVMAccuracy_gather$Accuracy * 100
+
+SVM_Accuracy_Plot <- SVMAccuracy_gather %>%
+  ggplot(aes(y = Accuracy_perc, x = Network, fill = Network, colour = Network)) +
+  geom_flat_violin(position = position_nudge(x = .3, y = 0), alpha = .3) +
+  #geom_boxplot(width = .15, guides = FALSE, outlier.shape = NA, alpha = 0.5) +
+  geom_point(position = position_dodge2(width = 0.4), size = 3, alpha = 0.1) +
+  stat_summary(fun = mean, geom = 'pointrange', width = 0.3, size = 2.6, alpha = 1, position=position_dodge(width=0.4)) +
+  stat_summary(fun.data = mean_se, geom='errorbar', width = 0.35, size = 2.6, alpha = 1, linetype = "solid",
+               position=position_dodge(width=0.4)) +
+  #stat_summary(aes(y = meanAcc, group = as.numeric(Subject)), fun.y = mean, geom = "line", size = 2, alpha = 1.2, width = 0.25, colour = 
+  #               'gray48', mult = 1) +
+  guides(color = FALSE) +
+  #scale_color_brewer(palette = "Dark2") +
+  #scale_fill_brewer(palette = "Dark2") +
+  ylab('Classification accuracy (%)') +
+  geom_hline(yintercept = 25, colour = 'black', linetype = 'dashed') +
+  #geom_hline(yintercept = 65.33200, colour = 'grey', linetype = 'dashed') +
+  ylim(0, 100) +
+  guides(colour = "legend", group = 'none', fill = 'none', shape = 'none', size = 'none') +
+  graph_theme_NMA +
+  theme(axis.text.x = element_text(angle = 90), legend.position = 'none')
+
+ggsave('SVM_Accuracy_Plot.png', SVM_Accuracy_Plot, device = 'png', dpi = 100, width = 25, height = 15)
+
+# Quick ANOVA comparison (Do not overinterpret & ids are probably not specified well)
+SVMAccuracy_gather$Index <- rep(1:360)
+SVMAccuracy_gather$Classifier <- 'SVM'
+
+Classification_Acc_SVM <- aov_ez(
+   id = 'Index',
+   dv = 'Accuracy_perc',
+   data = SVMAccuracy_gather,
+   between = 'Network',
+   factorize = TRUE)
+ 
+summary(Classification_Acc_SVM)
+
+emmeans::emmip(Classification_Acc_SVM, ~ Network, cov.reduce = range) 
+lsmeans(Classification_Acc_SVM, pairwise ~ Network, cov.reduce = range, adjust = 'bonferroni', lmerTest.limit = 4767) 
+```
+
+Combine GLM and SVM data for visualisation purposes
+
+```{r}
+GLM_SVM <- bind_rows(GLMAccuracy_gather, SVMAccuracy_gather)
+View(GLM_SVM)
+
+GLM_SVM$NetworkPlot <- if_else(GLM_SVM$Network == 'Primary.visual.cortex', 'Primary visual cortex',
+                                  if_else(GLM_SVM$Network == 'Secondary.visual.cortex', 'Secondary visual cortex',
+                                  if_else(GLM_SVM$Network == 'Somatomotor.network', 'Somatomotor network',
+                                  if_else(GLM_SVM$Network == 'Cingulo.opercular.network', 'Cingulo-opercular network',
+                                  if_else(GLM_SVM$Network == 'Language.network', 'Language network',
+                                  if_else(GLM_SVM$Network == 'Default.network', 'Default network',
+                                  if_else(GLM_SVM$Network == 'Frontoparietal.network', 'Frontoparietal network',
+                                  if_else(GLM_SVM$Network == 'Auditory.network', 'Auditory network',
+                                  if_else(GLM_SVM$Network == 'Dorsal.attention.network', 'Dorsal attention network',
+                                  if_else(GLM_SVM$Network == 'Posterior.medial.network', 'Posterior medial network',
+                                  if_else(GLM_SVM$Network == 'Orbito.affective.network', 'Orbito-affective network',
+                                          "Ventral attention network")))))))))))
+
+GLM_SVM$NetworkPlot2 <- if_else(GLM_SVM$Network == 'Primary.visual.cortex', 'Primary visual',
+                                  if_else(GLM_SVM$Network == 'Secondary.visual.cortex', 'Secondary visual',
+                                  if_else(GLM_SVM$Network == 'Somatomotor.network', 'Somatomotor',
+                                  if_else(GLM_SVM$Network == 'Cingulo.opercular.network', 'Cingulo-opercular',
+                                  if_else(GLM_SVM$Network == 'Language.network', 'Language',
+                                  if_else(GLM_SVM$Network == 'Default.network', 'Default',
+                                  if_else(GLM_SVM$Network == 'Frontoparietal.network', 'Frontoparietal',
+                                  if_else(GLM_SVM$Network == 'Auditory.network', 'Auditory',
+                                  if_else(GLM_SVM$Network == 'Dorsal.attention.network', 'Dorsal attention',
+                                  if_else(GLM_SVM$Network == 'Posterior.medial.network', 'Posterior medial',
+                                  if_else(GLM_SVM$Network == 'Orbito.affective.network', 'Orbito-affective',
+                                          "Ventral attention")))))))))))
+```
+
+Joint GLM & SVM plot
+
+```{r}
+Joint_Accuracy_Plot <- GLM_SVM %>%
+  ggplot(aes(y = Accuracy_perc, x = NetworkPlot2, fill = Classifier, colour = Classifier)) +
+  geom_flat_violin(position = position_nudge(x = .3, y = 0), alpha = .3) +
+  #geom_boxplot(width = .15, guides = FALSE, outlier.shape = NA, alpha = 0.5) +
+  geom_point(position = position_dodge2(width = 0.4), size = 3, alpha = 0.1) +
+  stat_summary(fun = mean, geom = 'pointrange', width = 0.3, size = 2.6, alpha = 1, position=position_dodge(width=0.4)) +
+  stat_summary(fun.data = mean_se, geom='errorbar', width = 0.35, size = 2.6, alpha = 1, linetype = "solid",
+               position=position_dodge(width=0.4)) +
+  #stat_summary(aes(y = meanAcc, group = as.numeric(Subject)), fun.y = mean, geom = "line", size = 2, alpha = 1.2, width = 0.25, colour = 
+  #               'gray48', mult = 1) +
+  guides(color = FALSE) +
+  #scale_color_brewer(palette = "Dark2") +
+  #scale_fill_brewer(palette = "Dark2") +
+  ylab('Classification accuracy (%)') +
+  geom_hline(yintercept = 25, colour = 'black', linetype = 'dashed') +
+  #geom_hline(yintercept = 65.33200, colour = 'grey', linetype = 'dashed') +
+  ylim(0, 100) +
+  scale_color_brewer(palette = "Dark2") +
+  scale_fill_brewer(palette = "Dark2") +
+  guides(colour = "legend", group = 'none', fill = 'none', shape = 'none', size = 'none') +
+  graph_theme_NMA +
+  theme(axis.text.x = element_text(angle = 90))
+
+ggsave('Joint_Accuracy_Plot.png', Joint_Accuracy_Plot, device = 'png', dpi = 100, width = 25, height = 15)
+```
